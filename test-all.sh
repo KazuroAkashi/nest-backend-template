@@ -1,0 +1,1 @@
+corepack pnpm run test && corepack pnpm run test:e2e

@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Permission {
+  EXAMPLE
+}
+
+enum AccountType {
+  LOCAL
+  GOOGLE
+  GITHUB
+}
+
+model Role {
+  name  String       @unique
+  users User[]
+  perms Permission[]
+}
+
+model Account {
+  id           Int         @id @default(autoincrement())
+  userTag      String
+  user         User        @relation(fields: [userTag], references: [tag])
+  type         AccountType
+  email        String
+  name         String
+  passHash     String
+  refreshToken String?
+}
+
+model User {
+  tag      String    @unique
+  roleName String
+  role     Role      @relation(fields: [roleName], references: [name])
+  accounts Account[]
+}

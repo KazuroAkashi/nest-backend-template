@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  app-test:
+    container_name: app-test
+    build:
+      context: .
+      dockerfile: test.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dbnetwork
+    tty: true
+    
+  db:
+    container_name: db
+    image: postgres:alpine
+    restart: always
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dbnetwork
+    tty: true
+
+networks:
+  dbnetwork:
