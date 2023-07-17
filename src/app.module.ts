@@ -50,11 +50,7 @@ export class AppModule implements OnModuleInit {
     constructor(private readonly roleService: RoleService) {}
 
     onModuleInit() {
-        this.roleService.fetchRoles().then((roles) => {
-            if (roles.some((role) => role.name === "Default")) return;
-
-            this.roleService.updateRoles([{ name: "Default", perms: [] }]);
-        });
+        this.roleService.addRole({ name: "Default", perms: [] }); // Don't do anything on error
     }
 }
 

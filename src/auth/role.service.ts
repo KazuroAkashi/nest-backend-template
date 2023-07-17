@@ -11,30 +11,32 @@ export class RoleService {
         return this.prisma.role.findMany();
     }
 
-    async updateRoles(roles: Role[]) {
-        let sumperm = new Set<Permission>();
-        let names = new Set<string>();
-        for (let role of roles) {
-            if (names.has(role.name))
-                throw new BadRequestException({
-                    code: ERRORS.ROLE_NAMES_MUST_BE_UNIQUE,
-                });
+    async addRole(role: Role) {
+        const prev = await this.prisma.role.findUnique({
+            where: { name: role.name },
+        });
 
-            names.add(role.name);
+        if (prev != null)
+            throw new BadRequestException({
+                code: ERRORS.ROLE_NAMES_MUST_BE_UNIQUE,
+            });
 
-            // Enforce hierarchy in permissions for roles
-            for (let perm of role.perms) {
-                sumperm.add(perm);
-            }
+        return this.prisma.role.create({
+            data: role,
+        });
+    }
 
-            role.perms = Array.from(sumperm);
-        }
+    async countRoleUsers(name: string) {
+        return this.prisma.user.count({ where: { roleName: name } });
+    }
 
-        return this.prisma.$transaction([
-            this.prisma.role.deleteMany(),
-            this.prisma.role.createMany({
-                data: roles,
-            }),
-        ]);
+    async deleteRole(name: string) {
+        const userCount = await this.countRoleUsers(name);
+        if (userCount > 0)
+            throw new BadRequestException({
+                code: ERRORS.CANNOT_DELETE_ROLE_WITH_USERS,
+            });
+
+        return this.prisma.role.delete({ where: { name } });
     }
 }
